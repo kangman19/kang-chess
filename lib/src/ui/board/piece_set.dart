@@ -34,16 +34,21 @@ class PiecePainter {
   }
 
   // Solid chess glyphs with U+FE0E so platforms render text, not emoji.
+  // The pawn (U+265F) is an emoji on Android and ignores VS15 there, drawing
+  // as a fixed black emoji for both sides, so it is painted as a path instead.
   static const _glyphs = {
     Role.king: '♚︎',
     Role.queen: '♛︎',
     Role.rook: '♜︎',
     Role.bishop: '♝︎',
     Role.knight: '♞︎',
-    Role.pawn: '♟︎',
   };
 
   void _paintText(Canvas canvas, Piece piece, Rect rect) {
+    if (piece.role == Role.pawn && set != PieceSet.letters) {
+      _paintGlyphPawn(canvas, piece, rect);
+      return;
+    }
     final size = rect.width.round();
     final (stroke, fill) =
         _textCache.putIfAbsent((piece, size), () => _layoutText(piece, size));
@@ -71,6 +76,21 @@ class PiecePainter {
     }
 
     final glyph = _glyphs[piece.role]!;
+    final (outline, fillColor) = _glyphPaints(piece, size.toDouble());
+    TextPainter make(TextStyle style) => TextPainter(
+          text: TextSpan(text: glyph, style: style),
+          textDirection: TextDirection.ltr,
+        )..layout();
+    final base = TextStyle(fontSize: size * 0.8, height: 1.0);
+    return (
+      make(base.copyWith(foreground: outline)),
+      make(base.copyWith(color: fillColor)),
+    );
+  }
+
+  /// Outline paint and fill color shared by the glyph and neon sets.
+  (Paint, Color) _glyphPaints(Piece piece, double size) {
+    final white = piece.color == Side.white;
     final neon = set == PieceSet.neon;
     final outline = Paint()
       ..style = PaintingStyle.stroke
@@ -85,15 +105,27 @@ class PiecePainter {
     final fillColor = neon
         ? (white ? const Color(0xFFE0FCFF) : const Color(0xFF2A0E2E))
         : (white ? const Color(0xFFFAFAFA) : const Color(0xFF262626));
-    TextPainter make(TextStyle style) => TextPainter(
-          text: TextSpan(text: glyph, style: style),
-          textDirection: TextDirection.ltr,
-        )..layout();
-    final base = TextStyle(fontSize: size * 0.8, height: 1.0);
-    return (
-      make(base.copyWith(foreground: outline)),
-      make(base.copyWith(color: fillColor)),
-    );
+    return (outline, fillColor);
+  }
+
+  /// Glyph-style pawn silhouette on a 100×100 grid, sized like the glyphs.
+  void _paintGlyphPawn(Canvas canvas, Piece piece, Rect rect) {
+    final (outline, fillColor) = _glyphPaints(piece, 100);
+    canvas.save();
+    canvas.translate(rect.left, rect.top);
+    canvas.scale(rect.width / 100);
+    final path = Path()
+      ..addOval(Rect.fromCircle(center: const Offset(50, 33), radius: 11))
+      ..addRRect(RRect.fromLTRBR(37, 44, 63, 51, const Radius.circular(3.5)))
+      ..moveTo(43, 51)
+      ..quadraticBezierTo(44, 64, 33, 74)
+      ..lineTo(67, 74)
+      ..quadraticBezierTo(56, 64, 57, 51)
+      ..close()
+      ..addRRect(RRect.fromLTRBR(28, 73, 72, 81, const Radius.circular(4)));
+    canvas.drawPath(path, outline);
+    canvas.drawPath(path, Paint()..color = fillColor);
+    canvas.restore();
   }
 
   void _paintToken(Canvas canvas, Piece piece, Rect rect) {

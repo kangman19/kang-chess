@@ -51,6 +51,12 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+# Local copy of stockfish_chess_engine 0.8.2 whose CMake no longer re-downloads
+# the ~78 MB NNUE nets on every build (see third_party/stockfish_chess_engine).
+dependency_overrides:
+  stockfish_chess_engine:
+    path: third_party/stockfish_chess_engine
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

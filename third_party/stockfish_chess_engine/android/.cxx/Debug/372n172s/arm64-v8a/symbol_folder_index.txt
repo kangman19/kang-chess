@@ -1,0 +1,1 @@
+C:\Code\Projects\kang-chess\build\stockfish_chess_engine\intermediates\cxx\Debug\372n172s\obj\arm64-v8a

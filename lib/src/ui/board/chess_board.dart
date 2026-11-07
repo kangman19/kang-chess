@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/chess_utils.dart';
 import '../../domain/move_classification.dart';
+import '../../domain/premove_queue.dart';
 import '../move_class_style.dart';
 import 'board_theme.dart';
 import 'piece_set.dart';
@@ -20,8 +21,9 @@ class BoardArrow {
 /// Interactive chess board.
 ///
 /// When [legalMoves] holds the source square, only those targets are
-/// accepted. When [canPremove] is set, any target is offered to [onMove] and
-/// the owner decides (the premove queue validates geometry).
+/// accepted. When [canPremove] is set, any premove-shaped target is offered
+/// to [onMove] and the owner decides. Dropping the king on its rook (or the
+/// rook on its king) is sent as castling: king two squares.
 class ChessBoard extends StatefulWidget {
   const ChessBoard({
     super.key,
@@ -92,9 +94,50 @@ class _ChessBoardState extends State<ChessBoard> {
 
   bool _isTarget(Square from, Square to) {
     if (from == to) return false;
-    final legal = widget.legalMoves[from];
-    if (legal != null) return legal.contains(to);
-    return widget.canPremove;
+    final castle = _castleMove(from, to);
+    final legal = widget.legalMoves[castle?.from ?? from];
+    if (legal != null) return legal.contains(castle?.to ?? to);
+    if (!widget.canPremove) return false;
+    if (castle != null) return true;
+    final piece = widget.board.pieceAt(from);
+    return !_isOwnPiece(to) &&
+        piece != null &&
+        isPremoveShape(piece, from, to);
+  }
+
+  /// King-onto-rook or rook-onto-king as a castling move (king two squares),
+  /// or `null` if [from] and [to] are not a home-rank king and corner rook.
+  NormalMove? _castleMove(Square from, Square to) {
+    final a = widget.board.pieceAt(from);
+    final b = widget.board.pieceAt(to);
+    if (a == null || b == null || a.color != b.color) return null;
+    final (king, rook) = switch ((a.role, b.role)) {
+      (Role.king, Role.rook) => (from, to),
+      (Role.rook, Role.king) => (to, from),
+      _ => (null, null),
+    };
+    if (king == null || rook == null) return null;
+    final home = a.color == Side.white ? Rank.first : Rank.eighth;
+    if (king != Square.fromCoords(File.e, home) || rook.rank != home) {
+      return null;
+    }
+    if (rook.file != File.a && rook.file != File.h) return null;
+    final kingTo = Square.fromCoords(rook.file == File.h ? File.g : File.c, home);
+    return NormalMove(from: king, to: kingTo);
+  }
+
+  /// Squares to hint for [from]: legal targets, the castling partner, and
+  /// during the opponent's turn every premove-shaped square.
+  Set<Square> _hintsFor(Square from) {
+    final hints = <Square>{...?widget.legalMoves[from]};
+    final premoving = widget.canPremove && widget.legalMoves[from] == null;
+    for (var i = 0; i < 64; i++) {
+      final to = Square(i);
+      if (hints.contains(to)) continue;
+      final wanted = premoving || (_isOwnPiece(to) && _castleMove(from, to) != null);
+      if (wanted && _isTarget(from, to)) hints.add(to);
+    }
+    return hints;
   }
 
   Square? _squareAt(Offset local) {
@@ -113,7 +156,7 @@ class _ChessBoardState extends State<ChessBoard> {
     final square = _squareAt(details.localPosition);
     if (square == null) return;
     final selected = _selected;
-    if (selected != null && _isTarget(selected, square) && !_isOwnPiece(square)) {
+    if (selected != null && _isTarget(selected, square)) {
       _submit(selected, square);
       return;
     }
@@ -150,13 +193,18 @@ class _ChessBoardState extends State<ChessBoard> {
     });
     if (from == null || position == null) return;
     final to = _squareAt(position);
-    if (to != null && _isTarget(from, to) && !_isOwnPiece(to)) {
+    if (to != null && _isTarget(from, to)) {
       _submit(from, to);
     }
   }
 
   Future<void> _submit(Square from, Square to) async {
     setState(() => _selected = null);
+    final castle = _castleMove(from, to);
+    if (castle != null) {
+      widget.onMove?.call(castle);
+      return;
+    }
     Role? promotion;
     final isLegalMove = widget.legalMoves[from]?.contains(to) ?? false;
     if (isLegalMove && needsPromotion(widget.board, from, to)) {
@@ -201,9 +249,8 @@ class _ChessBoardState extends State<ChessBoard> {
       child: LayoutBuilder(builder: (context, constraints) {
         _squareSize = constraints.maxWidth / 8;
         final selected = _selected;
-        final targets = selected == null
-            ? const <Square>{}
-            : (widget.legalMoves[selected] ?? const <Square>{});
+        final targets =
+            selected == null ? const <Square>{} : _hintsFor(selected);
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTapUp: _onTapUp,

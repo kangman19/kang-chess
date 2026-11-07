@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter emulators *)",
+      "Bash(P=/c/Users/kang/AppData/Local/Pub/Cache/hosted/pub.dev/stockfish_chess_engine-0.8.2; sed -n '/platforms:/,/^[a-z]/p' $P/pubspec.yaml | grep -v \"^\\\\s*#\")",
+      "Bash(flutter doctor *)",
+      "Bash(flutter build *)",
+      "PowerShell(flutter test test/ui/chess_board_test.dart)",
+      "PowerShell(flutter analyze test)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\kang\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\stockfish_chess_engine-0.8.2"
+    ]
+  }
+}
