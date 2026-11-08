@@ -201,9 +201,27 @@ The ratings below 1320 are **estimates**, not calibrated. Verifying them
 would mean running bot-vs-bot matches against anchored opponents. That is
 listed as follow-up work in the README.
 
-Thinking time: each bot move uses `min(movetimeCap, remaining/30 + increment/2)`,
-plus a short humanizing delay of 300–900 ms for bots below 1600, so premoves
-stay usable.
+Engine search time: each bot move uses `min(movetimeCap, remaining/30 + increment/2)`.
+
+### 2.3 Thinking pace (Design, `lib/src/domain/bot_pacing.dart`)
+
+The engine answers far faster than a person, so each reply is held back until
+a human-like total think time has passed. Search time counts toward it. The
+think time is drawn per move:
+
+- **Base by rating:** about 1 s at 100 rising to 4.5 s at 2850, in an
+  unhurried game.
+- **Clock:** scaled by the per-move budget `remaining/35 + 0.8·increment`
+  (×0.3 to ×2), and never more than 12% of the remaining clock.
+- **Opening:** ×0.35 for the first `4 + elo/250` plies (moves from memory).
+- **Obvious moves:** a forced move takes 0.35–0.85 s; a recapture ×0.4;
+  escaping check with ≤3 replies ×0.5. Otherwise busier positions take
+  longer (×0.6 to ×1.4 by legal-move count).
+- **Spread:** a log-normal factor (σ 0.6 for weak bots, 0.4 for strong)
+  and a 7% chance of a long think (×1.8 to ×3.3).
+- **Limits:** 0.35 s minimum (less only in a time scramble), 15 s maximum.
+
+This also leaves a natural window for premoves.
 
 ---
 

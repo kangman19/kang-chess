@@ -5,6 +5,7 @@ import 'package:dartchess/dartchess.dart';
 import 'package:flutter/foundation.dart';
 
 import '../core/chess_utils.dart';
+import '../domain/bot_pacing.dart';
 import '../domain/bot_profile.dart';
 import '../domain/chess_clock.dart';
 import '../domain/premove_queue.dart';
@@ -73,8 +74,10 @@ class GameController extends ChangeNotifier {
     required this.clockSetup,
     required EngineService engine,
     this.premovesEnabled = true,
+    BotPacer? pacer,
     math.Random? random,
   })  : _random = random ?? math.Random(),
+        _pacer = pacer ?? BotPacer(random: random),
         _picker = BotMovePicker(engine, random: random) {
     clock = ChessClock(clockSetup, onFlag: _onFlag);
     _repetitions[_position.zobristHash()] = 1;
@@ -87,6 +90,7 @@ class GameController extends ChangeNotifier {
   final ClockSetup clockSetup;
   final bool premovesEnabled;
   final math.Random _random;
+  final BotPacer _pacer;
   final BotMovePicker _picker;
   late final ChessClock clock;
 
@@ -98,7 +102,7 @@ class GameController extends ChangeNotifier {
   bool _botThinking = false;
   int _generation = 0;
   CancelToken? _botCancel;
-  Completer<void>? _humanDelay;
+  Completer<void>? _paceDelay;
   int _premoveCancellations = 0;
   String? _engineError;
   bool _disposed = false;
@@ -220,17 +224,9 @@ class GameController extends ChangeNotifier {
     _botThinking = true;
     notifyListeners();
 
-    if (bot.humanizedDelay) {
-      final delay = Duration(milliseconds: 300 + _random.nextInt(600));
-      final waited = _humanDelay = Completer<void>();
-      final timer = Timer(delay, () {
-        if (!waited.isCompleted) waited.complete();
-      });
-      await waited.future;
-      timer.cancel();
-      if (generation != _generation) return;
-    }
-
+    final thinking = Stopwatch()..start();
+    final remaining = clock.isTimed ? clock.remaining(botSide) : null;
+    final increment = clockSetup.of(botSide)?.increment ?? Duration.zero;
     final cancel = _botCancel = CancelToken();
     NormalMove? move;
     try {
@@ -239,8 +235,8 @@ class GameController extends ChangeNotifier {
         position: _position,
         startFen: startFen,
         history: [for (final m in _moves) m.uci],
-        remaining: clock.isTimed ? clock.remaining(botSide) : null,
-        increment: clockSetup.of(botSide)?.increment ?? Duration.zero,
+        remaining: remaining,
+        increment: increment,
         cancel: cancel,
       );
     } catch (error) {
@@ -249,6 +245,27 @@ class GameController extends ChangeNotifier {
       move = legal.isEmpty ? null : legal[_random.nextInt(legal.length)];
     }
     if (generation != _generation || _disposed || move == null) return;
+
+    // Hold the reply until a human-like think time has passed in total.
+    final last = lastMove;
+    final pace = _pacer.thinkTime(
+      bot: bot,
+      position: _position,
+      ply: _moves.length,
+      recapture: last != null && last.captured && move.to == last.move.to,
+      remaining: remaining,
+      increment: increment,
+    );
+    final wait = pace - thinking.elapsed;
+    if (wait > Duration.zero) {
+      final waited = _paceDelay = Completer<void>();
+      final timer = Timer(wait, () {
+        if (!waited.isCompleted) waited.complete();
+      });
+      await waited.future;
+      timer.cancel();
+      if (generation != _generation || _disposed) return;
+    }
 
     _botThinking = false;
     _apply(move);
@@ -278,11 +295,11 @@ class GameController extends ChangeNotifier {
     super.dispose();
   }
 
-  /// Wakes a pending humanizing delay so its bot turn can observe the new
+  /// Wakes a pending pacing delay so its bot turn can observe the new
   /// generation and exit.
   void _releaseDelay() {
-    final delay = _humanDelay;
+    final delay = _paceDelay;
     if (delay != null && !delay.isCompleted) delay.complete();
-    _humanDelay = null;
+    _paceDelay = null;
   }
 }

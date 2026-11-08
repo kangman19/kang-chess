@@ -1,6 +1,7 @@
 import 'package:dartchess/dartchess.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kang_chess/src/core/chess_utils.dart';
+import 'package:kang_chess/src/domain/bot_pacing.dart';
 import 'package:kang_chess/src/domain/bot_profile.dart';
 import 'package:kang_chess/src/domain/time_control.dart';
 import 'package:kang_chess/src/engine/engine_service.dart';
@@ -10,9 +11,8 @@ import '../support/fake_uci.dart';
 
 NormalMove mv(String uci) => NormalMove.fromUci(uci);
 
-/// A UCI_Elo bot: no humanizing delay, no random moves.
-final BotProfile fastBot =
-    BotProfile.all.firstWhere((b) => b.uciElo != null && !b.humanizedDelay);
+/// A UCI_Elo bot: no random moves. Games use instant pacing.
+final BotProfile fastBot = BotProfile.all.firstWhere((b) => b.uciElo != null);
 
 (String?, List<String>) scripted(Position pos, Map<String, String> byBoard) {
   final uci = byBoard[pos.board.fen];
@@ -33,6 +33,7 @@ void main() {
         playerSide: player,
         clockSetup: ClockSetup.untimed,
         engine: engine,
+        pacer: BotPacer.instant(),
       );
 
   tearDown(() => engine.dispose());

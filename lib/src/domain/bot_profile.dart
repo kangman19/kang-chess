@@ -54,10 +54,6 @@ class BotProfile {
 
   bool get usesInjection => temperature > 0;
 
-  /// Bots below this rating pause briefly so they feel human and premoves
-  /// stay usable.
-  bool get humanizedDelay => elo < 1600;
-
   String get ratingTag => fullStrength ? 'MAX' : '$elo';
 
   static const all = <BotProfile>[
