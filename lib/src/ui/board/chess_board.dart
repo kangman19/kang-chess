@@ -22,7 +22,8 @@ class BoardArrow {
 ///
 /// When [legalMoves] holds the source square, only those targets are
 /// accepted. When [canPremove] is set, any premove-shaped target is offered
-/// to [onMove] and the owner decides. Dropping the king on its rook (or the
+/// to [onMove] and the owner decides, including squares held by our own
+/// pieces (a planned recapture). Dropping the king on its rook (or the
 /// rook on its king) is sent as castling: king two squares.
 class ChessBoard extends StatefulWidget {
   const ChessBoard({
@@ -100,9 +101,8 @@ class _ChessBoardState extends State<ChessBoard> {
     if (!widget.canPremove) return false;
     if (castle != null) return true;
     final piece = widget.board.pieceAt(from);
-    return !_isOwnPiece(to) &&
-        piece != null &&
-        isPremoveShape(piece, from, to);
+    if (piece == null || !isPremoveShape(piece, from, to)) return false;
+    return !_isOwnPiece(to) || canPremoveOntoOwn(piece, from, to);
   }
 
   /// King-onto-rook or rook-onto-king as a castling move (king two squares),

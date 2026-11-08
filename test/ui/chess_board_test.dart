@@ -99,6 +99,34 @@ void main() {
     expect(moves.map((m) => m.uci), ['e1g1']);
   });
 
+  testWidgets('recapture premove onto own piece by drag', (tester) async {
+    // Rook b1 defends the b2 pawn.
+    final defended = Chess.fromSetup(
+        Setup.parseFen('4k3/8/8/8/8/8/1P6/1R2K3 w - - 0 1'));
+    final moves = await _pump(tester, position: defended, premove: true);
+    await tester.dragFrom(_center('b1'), _center('b2') - _center('b1'));
+    await tester.pump();
+    expect(moves.map((m) => m.uci), ['b1b2']);
+  });
+
+  testWidgets('recapture premove onto own piece by tap', (tester) async {
+    final defended = Chess.fromSetup(
+        Setup.parseFen('4k3/8/8/8/8/8/1P6/1R2K3 w - - 0 1'));
+    final moves = await _pump(tester, position: defended, premove: true);
+    await _tap(tester, 'b1');
+    await _tap(tester, 'b2');
+    expect(moves.map((m) => m.uci), ['b1b2']);
+  });
+
+  testWidgets('pawns cannot premove straight onto own pieces', (tester) async {
+    final stacked = Chess.fromSetup(
+        Setup.parseFen('4k3/8/8/8/8/1P6/1P6/4K3 w - - 0 1'));
+    final moves = await _pump(tester, position: stacked, premove: true);
+    await _tap(tester, 'b2');
+    await _tap(tester, 'b3'); // not a target, so this selects b3 instead
+    expect(moves, isEmpty);
+  });
+
   testWidgets('premoves reject impossible piece geometry', (tester) async {
     final moves = await _pump(tester, position: position, premove: true);
     await _tap(tester, 'a1');

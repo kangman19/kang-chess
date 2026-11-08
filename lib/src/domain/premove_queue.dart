@@ -34,9 +34,13 @@ class PremoveQueue {
     final board = project(current);
     final piece = board.pieceAt(move.from);
     if (piece == null || piece.color != side) return false;
-    final target = board.pieceAt(move.to);
-    if (target != null && target.color == side) return false;
     if (!isPremoveShape(piece, move.from, move.to)) return false;
+    final target = board.pieceAt(move.to);
+    if (target != null &&
+        target.color == side &&
+        !canPremoveOntoOwn(piece, move.from, move.to)) {
+      return false;
+    }
     final promote = needsPromotion(board, move.from, move.to);
     _moves.add(NormalMove(
       from: move.from,
@@ -86,6 +90,17 @@ bool isPremoveShape(Piece piece, Square from, Square to) {
           (dy == 0 && dx.abs() == 2 && from.file == 4 && from.rank == homeRank);
   }
 }
+
+/// Whether [piece] may premove from [from] onto a square its own side holds:
+/// a planned recapture in case the opponent takes there. It only plays if a
+/// capture has happened by then. Pawns recapture diagonally only, and a king
+/// two-square move is castling, never a capture.
+bool canPremoveOntoOwn(Piece piece, Square from, Square to) =>
+    switch (piece.role) {
+      Role.pawn => from.file != to.file,
+      Role.king => (to.file - from.file).abs() <= 1,
+      _ => true,
+    };
 
 Board _applyProjected(Board board, NormalMove move) {
   final piece = board.pieceAt(move.from);

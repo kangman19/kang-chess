@@ -248,7 +248,10 @@ differs between platforms and is not specified publicly (**Unknown**).
    piece? Blocking pieces are ignored, because the opponent may move them.
    A pawn may premove diagonally even onto an empty square, since a capture
    may become possible. Castling patterns are allowed while the king is on
-   its home square.
+   its home square. A premove may also land on one of your own pieces, as a
+   planned recapture in case the opponent takes there. Pawns may only do this
+   diagonally, and a king's two-square move onto a piece is never accepted
+   (that pattern is castling).
 3. **Execution:** after the opponent moves, the head of the queue is checked
    for full legality on the real position. A legal move plays immediately
    with **0 ms** clock cost. The increment is still added.

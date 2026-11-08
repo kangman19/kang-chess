@@ -17,13 +17,43 @@ void main() {
     expect(queue.project(board).pieceAt(Square.e2), isNull);
   });
 
-  test('rejects wrong geometry, empty sources and own-piece targets', () {
+  test('rejects wrong geometry, empty sources and other side pieces', () {
     final queue = PremoveQueue();
     final board = Chess.initial.board;
     expect(queue.add(board, Side.white, mv('g1g3')), isFalse); // knight shape
     expect(queue.add(board, Side.white, mv('e4e5')), isFalse); // no piece
-    expect(queue.add(board, Side.white, mv('d1d2')), isFalse); // own pawn
     expect(queue.add(board, Side.white, mv('e7e5')), isFalse); // not ours
+    expect(queue.isEmpty, isTrue);
+  });
+
+  test('allows recapture premoves onto own pieces', () {
+    final queue = PremoveQueue();
+    final board = Chess.initial.board;
+    expect(queue.add(board, Side.white, mv('d1d2')), isTrue); // queen
+    expect(queue.add(board, Side.white, mv('g1e2')), isTrue); // knight
+    // Pawns never recapture straight ahead, and the king's two-square move
+    // is castling, not a capture.
+    final pos = fen('4k3/8/8/8/8/4P3/4P3/4K1N1 w - - 0 1');
+    final q2 = PremoveQueue();
+    expect(q2.add(pos.board, Side.white, mv('e2e3')), isFalse);
+    expect(q2.add(pos.board, Side.white, mv('e1g1')), isFalse);
+    expect(q2.add(pos.board, Side.white, mv('e1e2')), isTrue); // king
+  });
+
+  test('recapture premove plays once the opponent has taken', () {
+    // White pawn d4 defended by the queen; black bishop is about to take.
+    final before = fen('4k3/8/8/2b5/3P4/8/8/3QK3 b - - 0 1');
+    final queue = PremoveQueue()..add(before.board, Side.white, mv('d1d4'));
+    expect(queue.moves, [mv('d1d4')]);
+    final taken = before.play(mv('c5d4'));
+    expect(queue.takeLegal(taken), mv('d1d4'));
+  });
+
+  test('recapture premove is cancelled if nothing was taken', () {
+    final before = fen('4k3/8/8/2b5/3P4/8/8/3QK3 b - - 0 1');
+    final queue = PremoveQueue()..add(before.board, Side.white, mv('d1d4'));
+    final quiet = before.play(mv('e8e7'));
+    expect(queue.takeLegal(quiet), isNull);
     expect(queue.isEmpty, isTrue);
   });
 
