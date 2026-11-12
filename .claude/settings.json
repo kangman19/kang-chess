@@ -10,7 +10,10 @@
       "Bash(python -)",
       "PowerShell(flutter analyze)",
       "PowerShell(flutter test)",
-      "PowerShell(flutter test test/ui)"
+      "PowerShell(flutter test test/ui)",
+      "Bash(flutter pub *)",
+      "Bash(dart run *)",
+      "Bash(flutter analyze *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\kang\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\stockfish_chess_engine-0.8.2"

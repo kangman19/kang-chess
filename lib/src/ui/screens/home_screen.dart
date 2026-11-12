@@ -22,6 +22,15 @@ class HomeScreen extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               children: [
                 const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset('assets/app_fork_logo.png',
+                        width: 88, height: 88),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Text('Kang Chess',
                     style: textTheme.displaySmall
                         ?.copyWith(fontWeight: FontWeight.w800)),

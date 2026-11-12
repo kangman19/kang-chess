@@ -86,7 +86,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 ? null
                 : Square.fromName(current.played.uci.substring(2, 4));
             return LayoutBuilder(builder: (context, constraints) {
-              final boardSize = (constraints.maxWidth - 34)
+              // Row padding (16) + eval bar (22) + gap (6).
+              final boardSize = (constraints.maxWidth - 44)
                   .clamp(0.0, constraints.maxHeight * 0.55);
               return Column(
                 children: [
@@ -220,12 +221,15 @@ class _NavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ply = review.selectedPly;
+    final prevKey = review.previousKeyMove;
+    final nextKey = review.nextKeyMove;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         IconButton(
             icon: const Icon(Icons.first_page),
-            onPressed: ply > 0 ? () => review.select(0) : null),
+            tooltip: 'Previous key move',
+            onPressed: prevKey != null ? () => review.select(prevKey) : null),
         IconButton(
             icon: const Icon(Icons.chevron_left),
             onPressed: ply > 0 ? () => review.select(ply - 1) : null),
@@ -237,9 +241,8 @@ class _NavBar extends StatelessWidget {
                 : null),
         IconButton(
             icon: const Icon(Icons.last_page),
-            onPressed: ply < review.plyCount
-                ? () => review.select(review.plyCount)
-                : null),
+            tooltip: 'Next key move',
+            onPressed: nextKey != null ? () => review.select(nextKey) : null),
       ],
     );
   }

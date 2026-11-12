@@ -109,6 +109,34 @@ class ReviewController extends ChangeNotifier {
     notifyListeners();
   }
 
+  static const _quietClasses = {
+    MoveClass.best,
+    MoveClass.excellent,
+    MoveClass.good,
+    MoveClass.book,
+  };
+
+  bool isKeyMove(int ply) {
+    final r = reviewAt(ply);
+    return r != null && !_quietClasses.contains(r.classification);
+  }
+
+  /// Nearest key move before the selection, or null if there is none.
+  int? get previousKeyMove {
+    for (var p = _selectedPly - 1; p >= 1; p--) {
+      if (isKeyMove(p)) return p;
+    }
+    return null;
+  }
+
+  /// Nearest key move after the selection, or null if there is none.
+  int? get nextKeyMove {
+    for (var p = _selectedPly + 1; p <= _reviews.length; p++) {
+      if (isKeyMove(p)) return p;
+    }
+    return null;
+  }
+
   void select(int ply) {
     final clamped = ply.clamp(0, plyCount);
     if (clamped == _selectedPly) return;
