@@ -1,0 +1,27 @@
+# ninja log v5
+167	16603	8170721445155155	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/memory.cpp.o	185f486f688eace5
+31	17601	8170721455843931	CMakeFiles/stockfish_chess_engine.dir/fixes/small_fixes.cpp.o	8d1bb255b8610ce2
+50	19314	8170721468244245	CMakeFiles/stockfish_chess_engine.dir/fixes/stream_fix.cpp.o	50da345b4e5359fe
+16972	20902	8170721480848413	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/nnue/nnue_misc.cpp.o	d50fc7ff6d2c0c5f
+17682	22059	8170721486960687	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/position.cpp.o	6b62163f663d064d
+19454	22870	8170721510609426	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/score.cpp.o	74504a66ef1d196
+21276	25064	8170721519959109	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/timeman.cpp.o	dd7b53085d99898
+224	26841	8170721549214541	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/nnue/features/half_ka_v2_hm.cpp.o	b5d42fa62d764ccf
+67	27432	8170721551676127	CMakeFiles/stockfish_chess_engine.dir/stockfish_chess_engine.cpp.o	c7dc8d773fe6df7e
+184	28539	8170721567470860	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/movepick.cpp.o	ac7bd0dfc41b8346
+129	28663	8170721568940336	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/bitboard.cpp.o	5fded97cb8ca7fcc
+22060	28787	8170721569302785	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/search.cpp.o	d8f7c1e4052b4356
+22932	29033	8170721572041515	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/thread.cpp.o	f0816edd871a2937
+199	29438	8170721576699798	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/movegen.cpp.o	509a2974d34afcde
+2	30080	8170721582848002	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/benchmark.cpp.o	76c2cd4fbbc2591c
+83	30643	8170721588652538	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/misc.cpp.o	aa2665a5354a0e63
+111	31209	8170721594498407	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/evaluate.cpp.o	7192cf0c99a2b28
+26845	31522	8170721597633738	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/tt.cpp.o	861d680578e6342c
+238	31684	8170721598947449	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/nnue/network.cpp.o	eaf9a17950cce127
+27440	32486	8170721607039168	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/tune.cpp.o	11bc2b6ffc0519f9
+145	32671	8170721608837284	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/main.cpp.o	f93cf6a265645620
+28664	32839	8170721610697315	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/ucioption.cpp.o	63b4f86d4633649
+25067	33372	8170721615531518	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/syzygy/tbprobe.cpp.o	e664fd986dfe2ea3
+98	43543	8170721716671813	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/engine.cpp.o	e0f0303c273157c4
+28539	46003	8170721741168233	CMakeFiles/stockfish_chess_engine.dir/Stockfish/src/uci.cpp.o	a7ec0f7564d6ac7d
+46017	46460	8170721746600487	C:/Code/Projects/kang-chess/build/stockfish_chess_engine/intermediates/cxx/Debug/2w5x2k23/obj/armeabi-v7a/libstockfish_chess_engine.so	d58f92527aa16a37

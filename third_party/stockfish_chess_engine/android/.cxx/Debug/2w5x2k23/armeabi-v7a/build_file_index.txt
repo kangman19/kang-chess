@@ -1,0 +1,1 @@
+C:\Code\Projects\kang-chess\third_party\stockfish_chess_engine\src\CMakeLists.txt
